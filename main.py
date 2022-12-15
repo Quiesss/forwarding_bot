@@ -26,7 +26,7 @@ async def start_msg(message: Message):
 
 @router.message()
 async def forward_message(message: Message):
-    await message.forward('-1001609075511')
+    await message.forward('-1001895213515')
     await message.reply('Отправил, ожидайте')
 
 
