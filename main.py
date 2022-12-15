@@ -63,13 +63,13 @@ async def handle_albums(message: Message, album: List[Message]):
 
         group_elements.append(input_media)
     username = message.from_user.username if message.from_user.username else 'unknown'
-    await bot.send_message('-1001609075511', text=f'Сообщение от @{username}')
-    return await bot.send_media_group('-1001609075511', media=group_elements)
+    await bot.send_message('-1001895213515', text=f'Сообщение от @{username}')
+    return await bot.send_media_group('-1001895213515', media=group_elements)
 
 
 @dp.message()
 async def handle_albums(message: Message):
-    return await message.forward('-1001609075511')
+    return await message.forward('-1001895213515')
 
 if __name__ == "__main__":
     dp.message.middleware(MediaGroupMiddleware())
