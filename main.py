@@ -3,7 +3,7 @@ import logging
 
 from aiogram.filters import Command
 from aiogram.fsm.storage.memory import MemoryStorage
-from aiogram import Router, Bot, Dispatcher, types
+from aiogram import Router, Bot, Dispatcher
 from aiogram.types import Message
 
 API_TOKEN = '5889492973:AAHI1vdaIXv3H1lmPacgnHQThO49vHLBfDo'
