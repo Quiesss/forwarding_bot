@@ -15,7 +15,7 @@ from aiogram.types import (
 DEFAULT_DELAY = 0.6
 CHAT_ID_TO_SEND = '-1001895213515'
 
-bot = Bot("5919702782:AAFlUB_2dR4wRF-PfCoYLzSvKxnwYqBdWpE", parse_mode="HTML")
+bot = Bot("5889492973:AAHI1vdaIXv3H1lmPacgnHQThO49vHLBfDo", parse_mode="HTML")
 dp = Dispatcher()
 
 
@@ -89,5 +89,4 @@ async def handle_albums(message: Message):
 
 if __name__ == "__main__":
     dp.message.middleware(MediaGroupMiddleware())
-    dp.include_router(router)
     dp.run_polling(bot, allowed_updates=dp.resolve_used_update_types())
