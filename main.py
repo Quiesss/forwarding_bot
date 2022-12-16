@@ -64,11 +64,11 @@ async def handle_albums(message: Message, album: List[Message]):
         print(element.caption)
         caption_kwargs = {"caption": element.caption, "caption_entities": element.caption_entities}
         if element.photo:
-            input_media = InputMediaPhoto(media=element.photo[-1].file_id, **caption_kwargs)
+            input_media = InputMediaPhoto(media=element.photo[-1].file_id, **caption_kwargs, parse_mode=None)
         elif element.video:
-            input_media = InputMediaVideo(media=element.video.file_id, **caption_kwargs)
+            input_media = InputMediaVideo(media=element.video.file_id, **caption_kwargs, parse_mode=None)
         elif element.document:
-            input_media = InputMediaDocument(media=element.document.file_id, **caption_kwargs)
+            input_media = InputMediaDocument(media=element.document.file_id, **caption_kwargs, parse_mode=None)
         elif element.audio:
             input_media = InputMediaAudio(media=element.audio.file_id, **caption_kwargs)
         else:
@@ -77,7 +77,7 @@ async def handle_albums(message: Message, album: List[Message]):
         group_elements.append(input_media)
     username = message.from_user.username if message.from_user.username else 'unknown'
     await message.reply('Отправил, ожидайте')
-    await bot.send_message(CHAT_ID_TO_SEND, text=f'Сообщение от @{username}', parse_mode='')
+    await bot.send_message(CHAT_ID_TO_SEND, text=f'Сообщение от @{username}', parse_mode=None)
     return await bot.send_media_group(CHAT_ID_TO_SEND, media=group_elements)
 
 
