@@ -96,7 +96,10 @@ async def handle_albums(message: Message, album: List[Message]):
         group_elements.append(input_media)
     username = message.from_user.username if message.from_user.username else 'unknown'
     await message.reply('Отправил, ожидайте')
-    await bot.send_message(CHAT_ID_TO_SEND, text=f'Сообщение от @{username}', parse_mode=None)
+    await bot.send_message(
+        CHAT_ID_TO_SEND,
+        text=f'Сообщение от @{username} ({message.from_user.full_name}) | {message.from_user.id}', parse_mode=None
+    )
     return await bot.send_media_group(CHAT_ID_TO_SEND, media=group_elements)
 
 
