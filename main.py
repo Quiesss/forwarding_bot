@@ -45,15 +45,34 @@ class MediaGroupMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
+@dp.message(F.reply_to_message)
+async def test(message: Message):
+    if message.reply_to_message:
+        to_user = message.reply_to_message.forward_from.id if message.reply_to_message.forward_from else \
+        message.reply_to_message.text.split('|')[1].strip()
+        if message.text == 'я':
+            await bot.send_message(
+                to_user,
+                f'Ваше тз принял в работу @{message.from_user.username}'
+            )
+        else:
+            await bot.send_message(
+                to_user,
+                message.text
+            )
+
+
 @dp.message(Command(commands=['start']))
 async def cmd_start(message: Message):
-    await message.answer('Отправляйте сюда свое тз в строго следующем формате: \n\n'
-                         '<b>Гео: \n'
-                         'Название ПП и Email каба: \n'
-                         'Поток из ПП: \n'
-                         'Ваш порядковый номер: \n'
-                         'Комментарии: \n'
-                         'Домонетка:</b>')
+    pin = await message.answer('‼️Отправляйте сюда свое тз в строго следующем формате: \n\n'
+                               '<b>Гео: \n'
+                               'Название ПП и Email каба: \n'
+                               'Поток из ПП: \n'
+                               'Ваш порядковый номер: \n'
+                               'Комментарии: \n'
+                               'Домонетка:</b>')
+    await bot.unpin_all_chat_messages(chat_id=message.chat.id)
+    await bot.pin_chat_message(chat_id=message.chat.id, message_id=pin.message_id)
 
 
 @dp.message(F.media_group_id)
@@ -81,8 +100,8 @@ async def handle_albums(message: Message, album: List[Message]):
     return await bot.send_media_group(CHAT_ID_TO_SEND, media=group_elements)
 
 
-@dp.message()
-async def handle_albums(message: Message):
+@dp.message(F.chat.type.in_({"private"}), ~F.content_type.in_({'pinned_message'}))
+async def handle_text(message: Message):
     await message.reply('Отправил, ожидайте')
     return await message.forward(CHAT_ID_TO_SEND)
 
