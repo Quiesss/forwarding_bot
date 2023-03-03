@@ -66,11 +66,11 @@ async def test(message: Message):
 async def cmd_start(message: Message):
     pin = await message.answer('‼️Отправляйте сюда свое тз в строго следующем формате: \n\n'
                                '<b>Гео: \n'
-                               'Название ПП и Email каба: \n'
-                               'Поток из ПП: \n'
-                               'Ваш порядковый номер: \n'
+                               'Название ПП: \n'
+                               'Метка: \n'
+                               'Оффер: \n'
                                'Комментарии: \n'
-                               'Домонетка:</b>')
+                               'КТ:</b>')
     await bot.unpin_all_chat_messages(chat_id=message.chat.id)
     await bot.pin_chat_message(chat_id=message.chat.id, message_id=pin.message_id)
 
