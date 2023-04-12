@@ -135,12 +135,17 @@ async def from_chat_to_user(message: Message):
 @dp.message(Command(commands=['start']))
 async def cmd_start(message: Message):
     pin = await message.answer('‼️Отправляйте сюда свое тз в строго следующем формате: \n\n'
+                               '<b>Гео - 2 буквенный формат (ES, FR, PT)\n'
+                               'Метка - Цифра + 1 буква имени/гео/оффер (14K/ES/W-loss) \n'
+                               'Оффер - полное название оффера или ссылка на оффер </b> \n\n'
                                '<b>Гео: \n'
                                'Название ПП: \n'
                                'Метка: \n'
                                'Оффер: \n'
                                'Комментарии: \n'
-                               'КТ:</b>')
+                               'КТ: \n'
+                               'Тематика: </b>'
+                               )
     await bot.unpin_all_chat_messages(chat_id=message.chat.id)
     await bot.pin_chat_message(chat_id=message.chat.id, message_id=pin.message_id)
 
