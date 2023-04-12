@@ -113,7 +113,6 @@ class MediaGroupMiddleware(BaseMiddleware):
 
 @dp.message(F.reply_to_message & ~F.chat.type.in_({"private"}))
 async def from_chat_to_user(message: Message):
-    print(message.chat.id)
     if message.reply_to_message:
         if message.reply_to_message.forward_from:
             to_user = message.reply_to_message.forward_from.id
