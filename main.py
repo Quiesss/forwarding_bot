@@ -45,11 +45,82 @@ class MediaGroupMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
-@dp.message(F.reply_to_message)
-async def test(message: Message):
+# def update_zip(zip_name, filename, data):
+#     # generate a temp file
+#     tmpfd, tmpname = tempfile.mkstemp(dir=os.path.dirname(zip_name))
+#     os.close(tmpfd)
+#
+#     # create a temp copy of the archive without filename
+#     with zipfile.ZipFile(zip_name, 'r') as zin:
+#
+#         with zipfile.ZipFile(tmpname, 'w') as zout:
+#             zout.comment = zin.comment  # preserve the comment
+#             for item in zin.infolist():
+#                 print(item.filename)
+#                 if item.filename.split('/')[-1] not in ['index.php', 'index.html']:
+#                     zout.writestr(item, zin.read(item.filename))
+#                 else:
+#                     index_path = item.filename
+#
+#     # replace with the temp archive
+#     os.remove(zip_name)
+#     os.rename(tmpname, zip_name)
+#     if 'index_path' in locals():
+#         # now add filename with its new data
+#         with zipfile.ZipFile(zip_name, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
+#             zf.writestr(index_path, data)
+#     else:
+#
+#
+# @dp.message(F.document)
+# async def test(message: Message):
+#     file = await bot.get_file(message.document.file_id)
+#     file_name = message.document.file_name
+#     name_split = message.document.file_name.split('.')
+#     original_name = name_split[0] if len(name_split) == 2 else ''
+#     uniq_name = str(uuid.uuid4()) + '.zip'
+#     await bot.download_file(file.file_path, file_name)
+#
+#     update_zip(file_name, 'index.php', 'test')
+#
+#     new_file = FSInputFile(file_name, file_name)
+#     await message.answer_document(new_file)
+
+    # exit()
+    # with zipfile.ZipFile(uniq_name, 'a') as archive:
+    #     # archive.write('order.php', original_name + '/order.php')
+    #     count = len(list(zipfile.Path(uniq_name).iterdir()))
+    #     if count <= 3:
+    #         path_php = archive.filelist[0].filename + 'index.php'
+    #         path_html = archive.filelist[0].filename + 'index.html'
+    #     else:
+    #         path_php = 'index.php'
+    #         path_html = 'index.html'
+    #     try:
+    #         index_file = archive.read(path_php)
+    #         path = path_php
+    #     except KeyError:
+    #         index_file = archive.read(path_html)
+    #         path = path_html
+    #
+    #     soup = BeautifulSoup(index_file, 'html.parser')
+    #     soup.head.append('TEST APPEND HEAD')
+    #
+    #     new_file = FSInputFile(uniq_name, uniq_name)
+    #     await message.answer_document(new_file)
+    #
+    # os.remove(uniq_name)
+
+@dp.message(F.reply_to_message & ~F.chat.type.in_({"private"}))
+async def from_chat_to_user(message: Message):
+    print(message.chat.id)
     if message.reply_to_message:
-        to_user = message.reply_to_message.forward_from.id if message.reply_to_message.forward_from else \
-        message.reply_to_message.text.split('|')[1].strip()
+        if message.reply_to_message.forward_from:
+            to_user = message.reply_to_message.forward_from.id
+        elif '|' in message.reply_to_message.text:
+            to_user = message.reply_to_message.text.split('|')[1].strip()
+        else:
+            to_user = CHAT_ID_TO_SEND
         if message.text == 'я':
             await bot.send_message(
                 to_user,
