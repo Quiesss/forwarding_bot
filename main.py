@@ -119,7 +119,8 @@ async def from_chat_to_user(message: Message):
         elif '|' in message.reply_to_message.text:
             to_user = message.reply_to_message.text.split('|')[1].strip()
         else:
-            to_user = CHAT_ID_TO_SEND
+            return message.answer('Не могу отправить пользователю личное сообщение. Либо он скрыт,'
+                                  ' либо вы ответили не на то сообщение')
         if message.text == 'я':
             await bot.send_message(
                 to_user,
@@ -135,12 +136,15 @@ async def from_chat_to_user(message: Message):
 @dp.message(Command(commands=['start']))
 async def cmd_start(message: Message):
     pin = await message.answer('‼️Отправляйте сюда свое тз в строго следующем формате: \n\n'
-                               '<b>Гео - 2 буквенный формат (ES, FR, PT)\n'
-                               'Метка - Цифра + 1 буква имени/гео/оффер (14K/ES/W-loss) \n'
-                               'Оффер - полное название оффера или ссылка на оффер </b> \n\n'
+                               '<b>Гео</b> - 2 буквенный формат (ES, FR, PT)\n'
+                               '<b>Метка</b> - Цифра + 1 буква имени/гео/оффер (14K/ES/W-loss) \n'
+                               '<b>Оффер</b> - полное название оффера или ссылка на оффер \n'
+                               '<b>Код доступа</b> - ваш личный код cobeklo или прочерк, '
+                               'если нужно настроить на льющиеся ссылки \n\n'
                                '<b>Гео: \n'
                                'Название ПП: \n'
                                'Метка: \n'
+                               'Код доступа: \n'
                                'Оффер: \n'
                                'Комментарии: \n'
                                'КТ: \n'
