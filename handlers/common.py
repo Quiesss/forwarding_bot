@@ -58,6 +58,18 @@ async def handle_albums(message: Message, album: List[Message]):
     return await bot.send_media_group(CHAT_ID_TO_SEND, media=group_elements)
 
 
+@router.message(Command(commands=['help']))
+async def cmd_start(message: Message):
+    return message.answer(
+        '<b>Команды по работе с потоками:</b> \n\n'
+        '<code>/get partner offer_name country keitaro</code> \n\n'
+        '<code>/add partner offer_name country keitaro </code>\n\n'
+        '<code>/del stream_id </code>\n\n'
+        'Для автонастройки, напишите маленькими буквами требуемую ПП (напр. shakes, everad), '
+        'далее заполните полученный шаблон и отправьте файлы вместе с ТЗ'
+    )
+
+
 @router.message(Command(commands=['start']))
 async def cmd_start(message: Message):
     pin = await message.answer('‼️Отправляйте сюда свое тз в строго следующем формате: \n\n'
