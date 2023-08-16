@@ -54,6 +54,7 @@ async def get_stream(message: Message, command: CommandObject):
 
 @router.message(Command("add"))
 async def add_stream(message: Message, command: CommandObject, state: FSMContext):
+    await state.clear()
     offer_data = command.args.split()
     if len(offer_data) != 4:
         return await message.answer(
@@ -114,3 +115,4 @@ async def add_data_to_stream(message: Message, state: FSMContext):
         await message.answer(f'Добавил оффер {offer_data.get("offer_name")}')
     else:
         await message.answer(f'Что-то пошло не так: {is_add}')
+    await state.clear()
