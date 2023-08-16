@@ -22,7 +22,7 @@ $args = [
     'ip' => isset($_POST['ip']) ? $_POST['ip'] : $_SERVER['REMOTE_ADDR'],
     'referrer' => isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : $_SERVER['HTTP_HOST'],
     'subacc' => $_POST['sub1'],
-    'subacc2' => {sub2},
+    'subacc2' => '{sub2}',
     'clickid' => $_POST['sub1'],
     'rotator_id' => {stream},
     ];

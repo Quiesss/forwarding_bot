@@ -6,14 +6,14 @@ const CLIENT_TOKEN = 'ZGE1NZU4ZMETMDGYNI00MMU1LTGXYTQTMGJMYZHKYWY2NGVL'; // ТО
 if (isset($_POST['name']) && $_POST['phone'] != '') {
     $post = [
             // "stream_code" => FLOW_TOKEN,
-            "stream_code" => {flow},
+            "stream_code" => '{flow}',
             
 			"client" => [
 				'name' => $_POST['name'],
 				'phone' => $_POST['phone'],
 			],
 			'sub1' => $_POST["sub1"],
-			'sub2' => {sub2},
+			'sub2' => '{sub2}',
 			'sub3' => $_POST["sub3"],
 			'sub4' => $_POST["sub4"],
 			'sub5' => $_POST["sub5"]
