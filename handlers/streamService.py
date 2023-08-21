@@ -73,6 +73,10 @@ async def get_stream(message: Message, command: CommandObject):
 @router.message(Command("add"))
 async def add_stream(message: Message, command: CommandObject, state: FSMContext):
     await state.clear()
+    if not command.args:
+        return await message.answer(
+            'Чтобы добавить оффер в базу, нужно отправить \n\n <code>/add</code> partner offer_name country keitaro'
+        )
     offer_data = command.args.split()
     if len(offer_data) != 4:
         return await message.answer(
