@@ -1,12 +1,15 @@
 import json
+import os
 import sqlite3
+import uuid
 
 from aiogram import Router
 from aiogram.filters import Command, CommandObject
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message
+from aiogram.types import Message, FSInputFile
 
+from conf import bot
 from db.db import DB
 from processing.Partners import get_partner_params
 from treatment import parse_conf
@@ -26,30 +29,45 @@ async def get_stream(message: Message, command: CommandObject):
         return await message.reply(
             'Чтобы получить информацию о потоке, отправьте команду \n\n '
             '<code>/get partner offer_name country keitaro</code>'
-                            )
+        )
+
     query = query.strip().split()
     db = DB()
     streams_from_db = db.get_offer(query)
+
     if len(streams_from_db) == 0:
         return await message.answer('Не нашел потоки по этому запросу')
     if len(streams_from_db) > 6:
         return await message.answer(
             f'В ответе {len(streams_from_db)} потоков, уточните запрос, чтобы сократить ответ'
         )
+
     for stream in streams_from_db:
+
         stream_data = json.loads(stream[4])
-        prin_stream_data = ''
+        stream_id = stream[0]
+        partner = stream[1]
+        offer_name = stream[2]
+        country = stream[3]
+        json_stream_data = ''
         for k in stream_data:
-            prin_stream_data += f' ➖ <b>{k}: </b> {stream_data.get(k)}\n'
-        await message.answer(
-            f'<b>#:</b> {stream[0]}\n'
-            f'<b>ПП:</b> {stream[1]}\n'
-            f'<b>Название оффера:</b> {stream[2]}\n'
-            f'<b>Страна:</b> {stream[3]}\n'
-            f'<b>Данные потока:</b> \n'
-            f'{prin_stream_data} \n '
-            f'<b>Кейтаро:</b> {stream[5]}'
-        )
+            json_stream_data += f' ➖ <b>{k}: </b> {stream_data.get(k)}\n'
+        keitaro = stream[5]
+        image_path = './processing/product/img/' + stream[6] if stream[6] else ''
+
+        msg = f'<b>#:</b> {stream_id}\n' \
+              f'<b>ПП:</b> {partner}\n' \
+              f'<b>Название оффера:</b> {offer_name}\n' \
+              f'<b>Страна:</b> {country}\n' \
+              f'<b>Данные потока:</b> \n' \
+              f'{json_stream_data} \n' \
+              f'<b>Кейтаро:</b> {keitaro}'
+        if image_path and os.path.isfile(image_path):
+            offer_image = FSInputFile(image_path, filename='product.png')
+            if offer_image:
+                await message.answer_document(offer_image, caption=msg)
+        else:
+            await message.answer(msg)
 
 
 @router.message(Command("add"))
@@ -100,17 +118,29 @@ async def delete_stream_command(message: Message, command: CommandObject):
 
 @router.message(AddOffer.add_main_info)
 async def add_data_to_stream(message: Message, state: FSMContext):
-    json_data = json.dumps(parse_conf(message.text))
-    print(type(json_data), json_data)
+
     offer_data = await state.get_data()
     db = DB()
+
+    if message.document:
+        json_data = json.dumps(parse_conf(message.caption))
+        image = await bot.get_file(message.document.file_id)
+        image_path = image.file_path
+        new_name = str(uuid.uuid4()) + '.png'
+        await bot.download_file(image_path, './processing/product/img/' + new_name)
+    else:
+        json_data = json.dumps(parse_conf(message.text))
+        new_name = None
+
     is_add = db.add_offer(
         partner=offer_data.get('partner'),
         offer_name=offer_data.get('offer_name'),
         country=offer_data.get('country'),
         data=json_data,
-        keitaro=offer_data.get('keitaro')
+        keitaro=offer_data.get('keitaro'),
+        image=new_name
     )
+
     if is_add:
         await message.answer(f'Добавил оффер {offer_data.get("offer_name")}')
     else:

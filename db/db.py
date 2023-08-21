@@ -30,12 +30,12 @@ class DB:
             except sqlite3.DatabaseError as error:
                 print('Find some error: ' + error.__str__())
 
-    def add_offer(self, offer_name: str, partner: str, data: json, country: str, keitaro: str):
+    def add_offer(self, offer_name: str, partner: str, data: json, country: str, keitaro: str, image: str):
         with self.conn:
             try:
                 ex = self.cur.execute(
-                    "INSERT INTO offers (partner, name, country, keitaro, data) VALUES (?, ?, ?, ?, ?)",
-                    (partner, offer_name, country, keitaro, data)
+                    "INSERT INTO offers (partner, name, country, keitaro, data, image) VALUES (?, ?, ?, ?, ?, ?)",
+                    (partner, offer_name, country, keitaro, data, image)
                 )
                 return True if ex.rowcount > 0 else False
             except sqlite3.Error as err:

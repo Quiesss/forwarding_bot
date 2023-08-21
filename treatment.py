@@ -33,7 +33,7 @@ class IndexParse:
     CROSS_EMOJI = '❌'
     OK_EMOJI = '✅'
 
-    def __init__(self, index_text, conf: str, msg: list):
+    def __init__(self, index_text, conf: dict, msg: list):
         self.msg = msg
         try:
             self.conf = conf
