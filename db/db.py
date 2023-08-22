@@ -9,8 +9,8 @@ class DB:
         self.cur = self.conn.cursor()
 
     def get_offer(self, params: list):
-        if len(params) > 1:
-            params[1] += '%'
+        for idx, param in enumerate(params):
+            params[idx] += '%'
         params = tuple(params)
         params_name = ['partner', 'name', 'country', 'keitaro']
         query = 'SELECT * FROM offers WHERE '
