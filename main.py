@@ -39,10 +39,6 @@ class MediaGroupMiddleware(BaseMiddleware):
         return await handler(event, data)
 
 
-async def send():
-    await bot.send('460956316', 'bot is stopped')
-
-
 async def main():
     dp = Dispatcher(storage=MemoryStorage())
     dp.message.middleware(MediaGroupMiddleware())

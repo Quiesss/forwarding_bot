@@ -1,7 +1,7 @@
 from typing import List
 
 from aiogram import Router, F
-from aiogram.filters import Command
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message, InputMediaPhoto, InputMediaVideo, InputMediaDocument, InputMediaAudio
 
 from conf import bot, CHAT_ID_TO_SEND

@@ -39,7 +39,7 @@ async def get_stream(message: Message, command: CommandObject):
         return await message.answer('Не нашел потоки по этому запросу')
     if len(streams_from_db) > 6:
         return await message.answer(
-            f'В ответе {len(streams_from_db)} потоков, уточните запрос, чтобы сократить ответ'
+            f'В ответе слишком много потоков ({len(streams_from_db)}), уточните запрос, чтобы сократить ответ'
         )
 
     for stream in streams_from_db:
@@ -75,12 +75,12 @@ async def add_stream(message: Message, command: CommandObject, state: FSMContext
     await state.clear()
     if not command.args:
         return await message.answer(
-            'Чтобы добавить оффер в базу, нужно отправить \n\n <code>/add</code> partner offer_name country keitaro'
+            'Чтобы добавить поток, нужно отправить \n\n <code>/add</code> partner offer_name country keitaro'
         )
     offer_data = command.args.split()
     if len(offer_data) != 4:
         return await message.answer(
-            'Чтобы добавить оффер в базу, нужно отправить \n\n <code>/add</code> partner offer_name country keitaro'
+            'Чтобы добавить поток, нужно отправить \n\n <code>/add</code> partner offer_name country keitaro'
         )
 
     partner_param = get_partner_params(offer_data[0].lower().strip())
@@ -100,7 +100,8 @@ async def add_stream(message: Message, command: CommandObject, state: FSMContext
         f'<b>offer_name:</b> {offer_data[1]}\n'
         f'<b>country:</b> {offer_data[2]}\n'
         f'<b>keitaro:</b> {offer_data[3]} \n\n'
-        f'Теперь пришлите данные для оффера в формате: \n\n<code>{partner_param}:\nprice: </code>'
+        f'<b>Теперь пришлите фото оффера в формате .png вместе с данными для потока в формате:</b> \n\n'
+        f'<code>{partner_param}:\nprice: </code>'
     )
 
 
@@ -113,16 +114,15 @@ async def delete_stream_command(message: Message, command: CommandObject):
         db = DB()
         delete_stream = db.del_stream(stream_id)
         if delete_stream:
-            return await message.answer('Успешно удалил поток #' + stream_id)
+            return await message.answer('✅Успешно удалил поток #' + stream_id)
         else:
-            return await message.answer('Не смог удалить поток, возможно его не существует')
+            return await message.answer('❌ Не смог удалить поток, возможно его не существует')
     except sqlite3.Error as error:
         await message.answer('Ошибка: ' + error)
 
 
 @router.message(AddOffer.add_main_info)
 async def add_data_to_stream(message: Message, state: FSMContext):
-
     offer_data = await state.get_data()
     db = DB()
 
@@ -146,7 +146,14 @@ async def add_data_to_stream(message: Message, state: FSMContext):
     )
 
     if is_add:
-        await message.answer(f'Добавил оффер {offer_data.get("offer_name")}')
+        answer = f'✅Добавил поток: \n\n' \
+                 f'<b>partner:</b> {offer_data.get("partner")}\n' \
+                 f'<b>offer_name:</b> {offer_data.get("offer_name")}\n' \
+                 f'<b>country:</b> {offer_data.get("country")}\n' \
+                 f'<b>keitaro:</b> {offer_data.get("keitaro")} \n'
+        if message.document:
+            answer += '<b>✅Добавил фото оффера</b>'
+        await message.answer(answer)
     else:
         await message.answer(f'Что-то пошло не так: {is_add}')
-    await state.clear()
+        await state.clear()
