@@ -154,6 +154,7 @@ async def add_data_to_stream(message: Message, state: FSMContext):
         if message.document:
             answer += '<b>✅Добавил фото оффера</b>'
         await message.answer(answer)
+        await state.clear()
     else:
         await message.answer(f'Что-то пошло не так: {is_add}')
         await state.clear()
