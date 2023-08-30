@@ -28,7 +28,8 @@ def get_partner_params(partner=None):
         'webvork': [],
         'everad': ['stream'],
         'cashfactories': ['flow', 'offerId'],
-        'trafficlight': []
+        'trafficlight': [],
+        'auron': ['offer_id', 'goal_id']
     }
     if not partner:
         return partners.keys()

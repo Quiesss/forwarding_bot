@@ -2,6 +2,7 @@ import json
 import os
 import sqlite3
 import uuid
+from copy import copy
 
 from aiogram import Router
 from aiogram.filters import Command, CommandObject
@@ -32,6 +33,9 @@ async def get_stream(message: Message, command: CommandObject):
         )
 
     query = query.strip().split()
+    if len(query) > 4:
+        return await message.answer('Слишком много параметров, укажите запрос в следующем формате, \n\n '
+                                    '<code>/get partner offer_name country keitaro</code>')
     db = DB()
     streams_from_db = db.get_offer(query)
 
@@ -43,31 +47,11 @@ async def get_stream(message: Message, command: CommandObject):
         )
 
     for stream in streams_from_db:
-
-        stream_data = json.loads(stream[4])
-        stream_id = stream[0]
-        partner = stream[1]
-        offer_name = stream[2]
-        country = stream[3]
-        json_stream_data = ''
-        for k in stream_data:
-            json_stream_data += f' ➖ <b>{k}: </b> {stream_data.get(k)}\n'
-        keitaro = stream[5]
-        image_path = './processing/product/img/' + stream[6] if stream[6] else ''
-
-        msg = f'<b>#:</b> {stream_id}\n' \
-              f'<b>ПП:</b> {partner}\n' \
-              f'<b>Название оффера:</b> {offer_name}\n' \
-              f'<b>Страна:</b> {country}\n' \
-              f'<b>Данные потока:</b> \n' \
-              f'{json_stream_data} \n' \
-              f'<b>Кейтаро:</b> {keitaro}'
-        if image_path and os.path.isfile(image_path):
-            offer_image = FSInputFile(image_path, filename='product.png')
-            if offer_image:
-                await message.answer_document(offer_image, caption=msg)
+        ans = convert_stream_data(stream)
+        if ans[1]:
+            await message.answer_document(ans[1], caption=ans[0])
         else:
-            await message.answer(msg)
+            await message.answer(ans[0])
 
 
 @router.message(Command("add"))
@@ -86,6 +70,19 @@ async def add_stream(message: Message, command: CommandObject, state: FSMContext
     partner_param = get_partner_params(offer_data[0].lower().strip())
     if not partner_param:
         return await message.answer('Нет такой ппшки')
+    db = DB()
+    offer_like_data = copy(offer_data)
+    exists_stream = db.get_offer(offer_like_data)
+    if exists_stream:
+        stream = convert_stream_data(exists_stream[0])
+        await message.answer(f'Кажется, такой поток уже есть в боте')
+        if stream[1]:
+            return await message.answer_document(
+                document=stream[1],
+                caption=stream[0]
+            )
+        else:
+            return await message.answer(stream[0])
     await state.set_state(AddOffer.add_main_info)
     await state.set_data({
         'partner': offer_data[0].strip(),
@@ -96,10 +93,10 @@ async def add_stream(message: Message, command: CommandObject, state: FSMContext
     partner_param = ': \n'.join(partner_param)
 
     await message.answer(
-        f'<b>partner:</b> {offer_data[0]}\n'
-        f'<b>offer_name:</b> {offer_data[1]}\n'
-        f'<b>country:</b> {offer_data[2]}\n'
-        f'<b>keitaro:</b> {offer_data[3]} \n\n'
+        f'<b>ПП:</b> {offer_data[0].capitalize()}\n'
+        f'<b>Название оффера:</b> {offer_data[1].capitalize()}\n'
+        f'<b>Страна:</b> {offer_data[2].upper()}\n'
+        f'<b>Кейтаро:</b> {offer_data[3]} \n\n'
         f'<b>Теперь пришлите фото оффера в формате .png вместе с данными для потока в формате:</b> \n\n'
         f'<code>{partner_param}:\nprice: </code>'
     )
@@ -147,10 +144,11 @@ async def add_data_to_stream(message: Message, state: FSMContext):
 
     if is_add:
         answer = f'✅Добавил поток: \n\n' \
-                 f'<b>partner:</b> {offer_data.get("partner")}\n' \
-                 f'<b>offer_name:</b> {offer_data.get("offer_name")}\n' \
-                 f'<b>country:</b> {offer_data.get("country")}\n' \
-                 f'<b>keitaro:</b> {offer_data.get("keitaro")} \n'
+                 f'<b>ПП:</b> {offer_data.get("partner")}\n' \
+                 f'<b>Название оффера:</b> {offer_data.get("offer_name")}\n' \
+                 f'<b>Страна:</b> {offer_data.get("country")}\n' \
+                 f'<b>Данные потока:</b> {json_data}' \
+                 f'<b>Кейтаро:</b> {offer_data.get("keitaro")} \n'
         if message.document:
             answer += '<b>✅Добавил фото оффера</b>'
         await message.answer(answer)
@@ -158,3 +156,27 @@ async def add_data_to_stream(message: Message, state: FSMContext):
     else:
         await message.answer(f'Что-то пошло не так: {is_add}')
         await state.clear()
+
+
+def convert_stream_data(stream: list):
+    stream_data = json.loads(stream[4])
+    stream_id = stream[0]
+    partner = str(stream[1]).capitalize()
+    offer_name = str(stream[2])
+    country = str(stream[3]).upper()
+    json_stream_data = ''
+    for k in stream_data:
+        json_stream_data += f' ➖ <b>{k}: </b> {stream_data.get(k)}\n'
+    keitaro = stream[5]
+    image_path = './processing/product/img/' + stream[6] if stream[6] else ''
+    offer_image = None
+    msg = f'<b>#:</b> {stream_id}\n' \
+          f'<b>ПП:</b> {partner}\n' \
+          f'<b>Название оффера:</b> {offer_name}\n' \
+          f'<b>Страна:</b> {country}\n' \
+          f'<b>Данные потока:</b> \n' \
+          f'{json_stream_data} \n' \
+          f'<b>Кейтаро:</b> {keitaro}'
+    if image_path and os.path.isfile(image_path):
+        offer_image = FSInputFile(image_path, filename='product.png')
+    return msg, offer_image
