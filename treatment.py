@@ -56,7 +56,7 @@ class IndexParse:
         ATag(self.page, self.a_tags, self.conf, self.msg).process()
         Scripts(self.page, self.scripts, self.conf, self.msg).process()
         Page(self.page, self.conf).process()
-        return self.get_php_code(self.conf.get('name'), self.conf.get('cobeklo')) + self.text_tuning()
+        return self.get_php_code(self.conf.get('cobeklo'), self.conf.get('value')) + self.text_tuning()
 
     def text_tuning(self):
         product = self.conf.get('product')
@@ -79,12 +79,12 @@ class IndexParse:
 
         return page
 
-    def get_php_code(self, name: str, cobeklo: str):
-        if cobeklo is None:
-            self.msg.append('❌fbpixel+cobeklo, ')
+    def get_php_code(self, value: str, cobeklo: str):
+        if cobeklo is None or value is None:
+            self.msg.append('❌cobeklo, ')
             return ''
-        self.msg.append('✅FBPixel/cobeklo')
-        return f'''<?php if ($_GET["{name}"] != '{cobeklo}') {{ echo '<script>window.location.replace("https://www.google.com/"); document.location.href="https://www.google.com/" </script>'; exit; }} ?>'''
+        self.msg.append('✅ ' + cobeklo + ' = ' + value)
+        return f'''<?php if ($_GET["{cobeklo}"] != '{value}') {{ echo '<script>window.location.replace("https://www.google.com/"); document.location.href="https://www.google.com/" </script>'; exit; }} ?>'''
 
 
 def make_order_file(conf, msg):

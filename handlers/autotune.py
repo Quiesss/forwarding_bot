@@ -72,12 +72,16 @@ async def update_zip(zip_name, filename, conf: dict):
                 # if curr_file.split('.')[0] in product_img_names:
                 #     product_name = curr_file
                 #     continue
+                try:
+                    c_filename = item.filename.encode('cp437').decode('utf-8')
+                except UnicodeDecodeError:
+                    c_filename = item.filename
                 if curr_file == 'order.php':
                     continue
                 if curr_file not in ['index.php', 'index.html', 'order.php']:
-                    zout.writestr(item.filename.encode('cp437').decode('UTF-8'), zin.read(item.filename))
+                    zout.writestr(c_filename, zin.read(item.filename))
                 else:
-                    index_path = item.filename.encode('cp437').decode('UTF-8')
+                    index_path = c_filename
                     try:
                         new_index = IndexParse(zin.read(item.filename), conf, msg).tuning()
                     except Exception as e:
@@ -102,11 +106,11 @@ async def update_zip(zip_name, filename, conf: dict):
 
             # if conf.get('product'):
             #     prod = conf.get('product') + '.png'
-                # if os.path.isfile(f'./processing/product/img/{prod}'):
-                # zf.write(f'./processing/product/img/{prod}', main_folder + product_name)
-                # msg.append('✅Добавил изображение оффера')
-                # else:
-                #     msg.append('❌Не нашел изображения для этого оффера или подходящего файла')
+            # if os.path.isfile(f'./processing/product/img/{prod}'):
+            # zf.write(f'./processing/product/img/{prod}', main_folder + product_name)
+            # msg.append('✅Добавил изображение оффера')
+            # else:
+            #     msg.append('❌Не нашел изображения для этого оффера или подходящего файла')
 
             zf.writestr(index_path, str(new_index))
             return msg
