@@ -34,18 +34,20 @@ class Scripts:
                         break
 
         # Add jquery cdn
-        tag = self.soup.new_tag('script', attrs={
-            'src': 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
-        })
-        self.soup.head.insert(0, tag)
-        if self.conf.get('mask') is not None:
-            self.mask(self.conf.get('mask'))
+        # tag = self.soup.new_tag('script', attrs={
+        #     'src': 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
+        # })
+        # self.soup.head.insert(0, tag)
+        # if self.conf.get('mask') is not None:
+        #     self.mask(self.conf.get('mask'))
         # Вставляем дефолтные скрипты якоря, антидубля, валидатора
-        self.anchor()
-        self.anti_double()
-        self.validator()
-        self.add_domonet()
-        self.msg.append('✅Якорь, антидубль, валидатор')
+        self.scroll()
+        # self.anchor()
+        # self.anti_double()
+        # self.validator()
+        # self.add_domonet()
+        # self.msg.append('✅Якорь, антидубль, валидатор')
+        self.msg.append('✅ Скролл')
 
     # Скрипт домонетизации
     def add_domonet(self):
@@ -203,3 +205,30 @@ class Scripts:
         }})
         ''')
         # self.msg.append('✅Якорь')
+
+    def scroll(self):
+        self.add_new_tag(tag_text=f'''
+              document.addEventListener("DOMContentLoaded", function() {{
+        let maxScroll = 0;
+
+        window.addEventListener("scroll", function() {{
+            let scrollTop = window.scrollY;
+            let windowHeight = window.innerHeight;
+            let documentHeight = document.documentElement.scrollHeight;
+            let scrollPercent = (scrollTop / (documentHeight - windowHeight)) * 100;
+            if (scrollPercent > maxScroll) {{
+                maxScroll = scrollPercent;
+            }}
+        }});
+
+        let links = document.querySelectorAll("a");
+        let url = "{{offer}}";
+        links.forEach(function(link) {{
+            link.addEventListener("click", function(event) {{
+                event.preventDefault();
+                url += (url.includes("?") ? "&" : "?") + "scroll=" + Math.round(maxScroll);
+                window.location.href = url;
+            }});
+        }});
+    }});
+    ''')

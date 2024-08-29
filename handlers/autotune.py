@@ -59,7 +59,7 @@ validator
 
 async def update_zip(zip_name, filename, conf: dict):
     msg = []
-    product_name = 'product.png'
+    # product_name = 'product.png'
     # generate a temp file
     tmpfd, tmpname = tempfile.mkstemp(dir=os.path.dirname(zip_name))
     os.close(tmpfd)
@@ -69,9 +69,9 @@ async def update_zip(zip_name, filename, conf: dict):
             zout.comment = zin.comment  # preserve the comment
             for item in zin.infolist():
                 curr_file = item.filename.split('/')[-1]
-                if curr_file.split('.')[0] in product_img_names:
-                    product_name = curr_file
-                    continue
+                # if curr_file.split('.')[0] in product_img_names:
+                #     product_name = curr_file
+                #     continue
                 if curr_file == 'order.php':
                     continue
                 if curr_file not in ['index.php', 'index.html', 'order.php']:
@@ -94,19 +94,19 @@ async def update_zip(zip_name, filename, conf: dict):
                 main_folder = '/'.join(path[:-1]) + '/'
             else:
                 main_folder = ''
-            if conf.get('partner'):
-                zf.writestr(main_folder + 'order.php', make_order_file(conf, msg))
-                msg.append('✅Настройка ордер файла')
-            else:
-                msg.append('❌Ордер файл не настроен, не нашел в тз параметр partner')
+            # if conf.get('partner'):
+            #     zf.writestr(main_folder + 'order.php', make_order_file(conf, msg))
+            #     msg.append('✅Настройка ордер файла')
+            # else:
+            #     msg.append('❌Ордер файл не настроен, не нашел в тз параметр partner')
 
-            if conf.get('product'):
-                prod = conf.get('product') + '.png'
-                if os.path.isfile(f'./processing/product/img/{prod}'):
-                    zf.write(f'./processing/product/img/{prod}', main_folder + product_name)
-                    msg.append('✅Добавил изображение оффера')
-                else:
-                    msg.append('❌Не нашел изображения для этого оффера или подходящего файла')
+            # if conf.get('product'):
+            #     prod = conf.get('product') + '.png'
+                # if os.path.isfile(f'./processing/product/img/{prod}'):
+                # zf.write(f'./processing/product/img/{prod}', main_folder + product_name)
+                # msg.append('✅Добавил изображение оффера')
+                # else:
+                #     msg.append('❌Не нашел изображения для этого оффера или подходящего файла')
 
             zf.writestr(index_path, str(new_index))
             return msg
