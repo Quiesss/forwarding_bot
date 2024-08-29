@@ -84,7 +84,7 @@ class IndexParse:
             self.msg.append('❌fbpixel+cobeklo, ')
             return ''
         self.msg.append('✅FBPixel/cobeklo')
-        return f'''<?php if ($_GET["{name}"] != '{cobeklo}') {{ echo '<script>window.location.replace("https://www.google.com/"); document.location.href="https://www.google.com/" </script>'; exit; }}'''
+        return f'''<?php if ($_GET["{name}"] != '{cobeklo}') {{ echo '<script>window.location.replace("https://www.google.com/"); document.location.href="https://www.google.com/" </script>'; exit; }} ?>'''
 
 
 def make_order_file(conf, msg):
