@@ -79,7 +79,7 @@ async def update_zip(zip_name, filename, conf: dict):
                     c_filename = item.filename
                 if curr_file == 'order.php':
                     continue
-                if curr_file not in ['index.php', 'index.html', 'order.php']:
+                if curr_file not in ['index.php', 'index.html']:
                     zout.writestr(c_filename, zin.read(item.filename))
                 else:
                     index_path = c_filename
@@ -95,10 +95,10 @@ async def update_zip(zip_name, filename, conf: dict):
         # now add a filename with its new data
         with zipfile.ZipFile(zip_name, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
             path = index_path.split('/')
-            if len(path) > 1:
-                main_folder = '/'.join(path[:-1]) + '/'
-            else:
-                main_folder = ''
+            # if len(path) > 1:
+            #     main_folder = '/'.join(path[:-1]) + '/'
+            # else:
+            #     main_folder = ''
             # if conf.get('partner'):
             #     zf.writestr(main_folder + 'order.php', make_order_file(conf, msg))
             #     msg.append('✅Настройка ордер файла')
@@ -113,7 +113,7 @@ async def update_zip(zip_name, filename, conf: dict):
             # else:
             #     msg.append('❌Не нашел изображения для этого оффера или подходящего файла')
 
-            zf.writestr(index_path, str(new_index))
+            zf.writestr(index_path.replace('.html', '.php'), str(new_index))
             return msg
     else:
         return False
