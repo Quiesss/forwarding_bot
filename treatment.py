@@ -56,26 +56,26 @@ class IndexParse:
         ATag(self.page, self.a_tags, self.conf, self.msg).process()
         Scripts(self.page, self.scripts, self.conf, self.msg).process()
         Page(self.page, self.conf).process()
-        return self.get_php_code(self.conf.get('cobeklo'), self.conf.get('value')) + self.text_tuning()
+        return self.get_php_code(self.conf[0], self.conf[1]) + self.text_tuning()
 
     def text_tuning(self):
-        product = self.conf.get('product')
-        price = self.conf.get('price')
+        # product = self.conf.get('product')
+        # price = self.conf.get('price')
         page = str(self.page.prettify())
-        if product:
-            old_product = self.conf.get('old_p') or check_offer_name(self.page.text)
-            if old_product is not None:
-                page, count_offer_name = re.subn(old_product, product, page)
-                if count_offer_name > 0:
-                    self.msg.append(self.OK_EMOJI + f'Поменял название оффера в {count_offer_name} местах')
-                else:
-                    self.msg.append(self.CROSS_EMOJI + 'Не смог найти оффер в тексте')
-        if price:
-            page, replace_count = re.subn(f'\\b\\d+(?:\\.\\d+)?\\s?({self.PRICE_ENUM})', price, page)
-            if replace_count > 0:
-                self.msg.append(self.OK_EMOJI + f'Поменял цену в {replace_count} местах')
-            else:
-                self.msg.append(self.CROSS_EMOJI + 'Не смог найти цены в тексте')
+        # if product:
+        #     old_product = self.conf.get('old_p') or check_offer_name(self.page.text)
+        #     if old_product is not None:
+        #         page, count_offer_name = re.subn(old_product, product, page)
+        #         if count_offer_name > 0:
+        #             self.msg.append(self.OK_EMOJI + f'Поменял название оффера в {count_offer_name} местах')
+        #         else:
+        #             self.msg.append(self.CROSS_EMOJI + 'Не смог найти оффер в тексте')
+        # if price:
+        #     page, replace_count = re.subn(f'\\b\\d+(?:\\.\\d+)?\\s?({self.PRICE_ENUM})', price, page)
+        #     if replace_count > 0:
+        #         self.msg.append(self.OK_EMOJI + f'Поменял цену в {replace_count} местах')
+        #     else:
+        #         self.msg.append(self.CROSS_EMOJI + 'Не смог найти цены в тексте')
 
         return page
 

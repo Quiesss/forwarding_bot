@@ -6,6 +6,7 @@ import zipfile
 from typing import List
 
 from aiogram import Router, F
+from aiogram.filters import Command, CommandObject
 from aiogram.types import Message, FSInputFile
 
 from conf import bot
@@ -118,22 +119,29 @@ async def update_zip(zip_name, filename, conf: dict):
         return False
 
 
-@router.message(F.document | F.media_group_id, F.from_user.id.in_({460956316, 5215165553}))
+# @router.message(F.document | F.media_group_id, F.from_user.id.in_({460956316, 5215165553}))
+@router.message(Command(commands=["preland"]), F.document | F.media_group_id)
 async def update_index(message: Message, album: List[Message] = None):
     if not message.caption and not album and not message.document.file_id:
         return await message.answer('Не понял что нужно сделать, пришлите ТЗ')
     if album is not None:
-        conf = parse_conf(album[-1].caption)
+        # conf = parse_conf(album[-1].caption)
+        params = album[0].caption.split(" ")
+        if len(params) != 2:
+            return await message.answer(
+                '''Невалидный формат команды, укажите в следующем формат \n\n /preland <b>param=code</b>'''
+            )
+        params = params[1].strip().split("=")
         caption = []
         file_names = []
-
+        await message.answer("Начал обработку " + str(len(album)) + " прелендингов, ожидайте")
         for element in album:
             if element.document:
                 curr_file = await bot.get_file(element.document.file_id)
                 curr_name = element.document.file_name
                 file_names.append(str(uuid.uuid4()) + '.zip')
                 await bot.download_file(curr_file.file_path, file_names[-1])
-                result_msg = await update_zip(file_names[-1], 'index.php', conf)
+                result_msg = await update_zip(file_names[-1], 'index.php', params)
                 caption.append('\n'.join(result_msg))
                 # caption_kwargs = {"caption": '\n'.join(res)}
                 new_file = FSInputFile(file_names[-1], curr_name)
@@ -152,12 +160,19 @@ async def update_index(message: Message, album: List[Message] = None):
             os.remove(path)
         return
 
-    conf = parse_conf(message.caption)
+    params = message.caption.split(" ")
+    if len(params) != 2:
+        return await message.answer(
+            "Невалидный формат команды, укажите в следующем формате \n\n <b>/preland param=code</b>"
+                                    )
+    await message.answer("Начал обработку прелендинга, ожидайте")
+    params = params[1].strip().split("=")
+    # conf = parse_conf(message.caption)
     file = await bot.get_file(message.document.file_id)
     file_name = message.document.file_name
     uniq_name = str(uuid.uuid4()) + '.zip'
     await bot.download_file(file.file_path, uniq_name)
-    res = await update_zip(uniq_name, 'index.php', conf)
+    res = await update_zip(uniq_name, 'index.php', params)
     new_file = FSInputFile(uniq_name, file_name)
     await message.answer_document(new_file, caption='\n'.join(res))
     os.remove(uniq_name)

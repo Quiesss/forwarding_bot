@@ -10,7 +10,7 @@ class Scripts:
     ]
     BAD_INNER_SCRIPT_WORDS = [
         'history.pushState', 'vitBack', 'minfobiz', 'domonet', 'domonetka', 'scrollTop', 'IMask',
-        'x_order_form', "on('submit', 'form'", 'order-in-progress__popup', 'leadprofit'
+        'x_order_form', "on('submit', 'form'", 'order-in-progress__popup', 'leadprofit', 'initBacklink'
     ]
 
     def __init__(self, soup: BeautifulSoup, scripts, conf: dict, msg: list):
