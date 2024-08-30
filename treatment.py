@@ -79,7 +79,7 @@ class IndexParse:
 
         return page
 
-    def get_php_code(self, value: str, cobeklo: str):
+    def get_php_code(self, cobeklo: str, value: str):
         if cobeklo is None or value is None:
             self.msg.append('❌cobeklo, ')
             return ''
