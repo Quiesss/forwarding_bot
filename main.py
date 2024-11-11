@@ -6,7 +6,6 @@ from aiogram.fsm.storage.memory import MemoryStorage
 from conf import DEFAULT_DELAY, bot
 from handlers import common, autotune, streamService
 
-from aiogram.methods import DeleteWebhook
 from aiogram import BaseMiddleware, Dispatcher
 from aiogram.types import (
     Message,
@@ -48,7 +47,6 @@ async def main():
     dp.include_router(autotune.router)
     dp.include_router(common.router)
 
-    await bot(DeleteWebhook(drop_pending_updates=True))
     await dp.start_polling(bot, allowed_updates=dp.resolve_used_update_types())
 
 
