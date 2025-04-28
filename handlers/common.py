@@ -96,5 +96,7 @@ async def cmd_start(message: Message):
 
 @router.message(F.chat.type.in_({"private"}), ~F.content_type.in_({'pinned_message'}))
 async def handle_text(message: Message):
+    if message.from_user.is_bot or message.from_user.language_code != 'ru':
+        return await message.answer('I can\'t help u')
     await message.reply('Отправил, ожидайте')
     return await message.forward(CHAT_ID_TO_SEND)
