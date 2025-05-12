@@ -33,6 +33,10 @@ async def from_chat_to_user(message: Message):
 
 @router.message(F.media_group_id)
 async def handle_albums(message: Message, album: List[Message]):
+
+    if message.from_user.is_bot or message.from_user.language_code != 'ru':
+        return await message.answer('I can\'t help u')
+    
     """This handler will receive a complete album of any type."""
     group_elements = []
     for element in album:
