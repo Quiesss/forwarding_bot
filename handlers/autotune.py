@@ -8,6 +8,7 @@ from typing import List
 from aiogram import Router, F
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message, FSInputFile
+from aiogram.exceptions import TelegramBadRequest
 
 from conf import bot
 from processing.Partners import get_partner_params
@@ -73,10 +74,16 @@ async def update_zip(zip_name, filename, conf: dict):
                 # if curr_file.split('.')[0] in product_img_names:
                 #     product_name = curr_file
                 #     continue
-                try:
-                    c_filename = item.filename.encode('cp437').decode('utf-8')
-                except UnicodeDecodeError:
-                    c_filename = item.filename
+                # try:
+                #     c_filename = item.filename.encode('cp437').decode('utf-8', errors='ignore')
+                # except UnicodeDecodeError:
+                #     try:
+                #         c_filename = item.filename.encode('cp437').decode('cp866')
+                #     except UnicodeDecodeError:
+                #         try:
+                #             c_filename = item.filename.encode('cp437').decode('latit1')
+                #         except UnicodeDecodeError:
+                c_filename = item.filename
                 if curr_file == 'order.php':
                     continue
                 if curr_file not in ['index.php', 'index.html']:
@@ -168,7 +175,12 @@ async def update_index(message: Message, album: List[Message] = None):
     await message.answer("Начал обработку прелендинга, ожидайте")
     params = params[1].strip().split("=")
     # conf = parse_conf(message.caption)
-    file = await bot.get_file(message.document.file_id)
+    try:
+        file = await bot.get_file(message.document.file_id)
+    except TelegramBadRequest:
+        return await message.answer(
+            "‼️Архив слишком большой"
+        )
     file_name = message.document.file_name
     uniq_name = str(uuid.uuid4()) + '.zip'
     await bot.download_file(file.file_path, uniq_name)
