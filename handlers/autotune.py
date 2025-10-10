@@ -3,12 +3,14 @@ import tempfile
 import traceback
 import uuid
 import zipfile
+import unicodedata
 from typing import List
 
 from aiogram import Router, F
 from aiogram.filters import Command, CommandObject
 from aiogram.types import Message, FSInputFile
 from aiogram.exceptions import TelegramBadRequest
+from aiogram.types import BufferedInputFile
 
 from conf import bot
 from processing.Partners import get_partner_params
@@ -17,6 +19,26 @@ from treatment import parse_conf, IndexParse, make_order_file
 
 router = Router()
 
+UTF8_FLAG = 0x800  # bit 11
+
+def _raw_name_bytes_from_zipinfo(item: zipfile.ZipInfo) -> bytes:
+    if (item.flag_bits & UTF8_FLAG) != 0:
+        return item.filename.encode('utf-8')
+    return item.filename.encode('cp437')
+
+def _decode_zip_name(item: zipfile.ZipInfo) -> str:
+    raw = _raw_name_bytes_from_zipinfo(item)
+    try:
+        return unicodedata.normalize("NFC", raw.decode('utf-8'))
+    except UnicodeDecodeError:
+        pass
+    for enc in ('cp866', 'cp1251'):
+        try:
+            cand = raw.decode(enc)
+            return unicodedata.normalize("NFC", cand)
+        except UnicodeDecodeError:
+            continue
+    return item.filename
 
 @router.message(F.text.in_(get_partner_params()))
 async def get_partner_ta(message: Message):
@@ -61,69 +83,72 @@ validator
 
 async def update_zip(zip_name, filename, conf: dict):
     msg = []
-    # product_name = 'product.png'
-    # generate a temp file
     tmpfd, tmpname = tempfile.mkstemp(dir=os.path.dirname(zip_name))
     os.close(tmpfd)
-    # create a temp copy of the archive without filename
-    with zipfile.ZipFile(zip_name, 'r') as zin:
-        with zipfile.ZipFile(tmpname, 'w') as zout:
-            zout.comment = zin.comment  # preserve the comment
-            for item in zin.infolist():
-                curr_file = item.filename.split('/')[-1]
-                # if curr_file.split('.')[0] in product_img_names:
-                #     product_name = curr_file
-                #     continue
-                # try:
-                #     c_filename = item.filename.encode('cp437').decode('utf-8', errors='ignore')
-                # except UnicodeDecodeError:
-                #     try:
-                #         c_filename = item.filename.encode('cp437').decode('cp866')
-                #     except UnicodeDecodeError:
-                #         try:
-                #             c_filename = item.filename.encode('cp437').decode('latit1')
-                #         except UnicodeDecodeError:
-                c_filename = item.filename
-                if curr_file == 'order.php':
-                    continue
-                if curr_file not in ['index.php', 'index.html']:
-                    zout.writestr(c_filename, zin.read(item.filename))
-                else:
-                    index_path = c_filename
-                    try:
-                        new_index = IndexParse(zin.read(item.filename), conf, msg).tuning()
-                    except Exception as e:
-                        msg.append(('Ошибка: ' + str(e)))
-                        print(traceback.format_exc())  # debugging line
-                        return msg
+
+    decoded_index_path = None
+
+    with zipfile.ZipFile(zip_name, 'r') as zin, \
+        zipfile.ZipFile(tmpname, 'w', compression=zipfile.ZIP_DEFLATED, allowZip64=True) as zout:
+
+        zout.comment = zin.comment
+        decoded_index_path = None
+        new_index_bytes = None
+
+        for item in zin.infolist():
+            data = zin.read(item.filename)
+            name_u = _decode_zip_name(item)
+            base = name_u.split('/')[-1]
+
+            if base == 'order.php':
+                continue
+
+            if base in ('index.php', 'index.html'):
+                decoded_index_path = name_u
+                try:
+                    new_index_bytes = bytes(str(IndexParse(data, conf, msg).tuning()), 'utf-8')
+                except Exception as e:
+                    msg.append('Ошибка: ' + str(e))
+                    return msg
+                continue
+
+            zi = zipfile.ZipInfo(filename=name_u, date_time=item.date_time)
+            # перетащим важные метаданные
+            zi.compress_type  = item.compress_type
+            zi.comment        = item.comment
+            zi.extra          = item.extra
+            zi.internal_attr  = item.internal_attr
+            zi.external_attr  = item.external_attr
+            zi.create_system  = item.create_system
+            zi.create_version = item.create_version
+            zi.extract_version= item.extract_version
+            # КРИТИЧНО: проставить UTF-8 флаг (zipfile обычно сам поставит для non-ASCII, но явно — надёжней)
+            zi.flag_bits = (item.flag_bits | UTF8_FLAG)
+            zout.writestr(zi, data)
+
+    # затем дописываем новый index как UTF-8:
+    with zipfile.ZipFile(zip_name, 'a', compression=zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
+        out_path = decoded_index_path.replace('.html', '.php')
+        zi = zipfile.ZipInfo(filename=out_path)
+        zi.compress_type = zipfile.ZIP_DEFLATED
+        zi.flag_bits = UTF8_FLAG
+        zf.writestr(zi, new_index_bytes)
+
+                    
     os.remove(zip_name)
     os.rename(tmpname, zip_name)
-    if 'index_path' in locals():
-        # now add a filename with its new data
-        with zipfile.ZipFile(zip_name, mode='a', compression=zipfile.ZIP_DEFLATED) as zf:
-            path = index_path.split('/')
-            # if len(path) > 1:
-            #     main_folder = '/'.join(path[:-1]) + '/'
-            # else:
-            #     main_folder = ''
-            # if conf.get('partner'):
-            #     zf.writestr(main_folder + 'order.php', make_order_file(conf, msg))
-            #     msg.append('✅Настройка ордер файла')
-            # else:
-            #     msg.append('❌Ордер файл не настроен, не нашел в тз параметр partner')
 
-            # if conf.get('product'):
-            #     prod = conf.get('product') + '.png'
-            # if os.path.isfile(f'./processing/product/img/{prod}'):
-            # zf.write(f'./processing/product/img/{prod}', main_folder + product_name)
-            # msg.append('✅Добавил изображение оффера')
-            # else:
-            #     msg.append('❌Не нашел изображения для этого оффера или подходящего файла')
+    if decoded_index_path is not None and new_index_bytes is not None:
+        with zipfile.ZipFile(zip_name, mode='a', compression=zipfile.ZIP_DEFLATED, allowZip64=True) as zf:
+            out_path = decoded_index_path.replace('.html', '.php')
+            zi = zipfile.ZipInfo(filename=out_path)
+            zi.compress_type = zipfile.ZIP_DEFLATED
+            zi.flag_bits = UTF8_FLAG
+            zf.writestr(zi, new_index_bytes)
+        msg.append('✅ Заменён index.* и унифицирована кодировка имён (UTF-8)')
+        return msg
 
-            zf.writestr(index_path.replace('.html', '.php'), str(new_index))
-            return msg
-    else:
-        return False
+    return False
 
 
 # @router.message(F.document | F.media_group_id, F.from_user.id.in_({460956316, 5215165553}))
@@ -156,13 +181,6 @@ async def update_index(message: Message, album: List[Message] = None):
                 # input_media = InputMediaDocument(media=new_file, parse_mode=None)
                 # group_elements.append(input_media)
                 await message.answer_document(new_file, caption='\n'.join(result_msg))
-
-        # res_capture = '\n\n'.join(caption)
-        # if len(caption) > 200:
-        #     await message.answer(res_capture)
-        # else:
-        #     group_elements[0].caption = res_capture
-        # await message.answer_media_group(media=group_elements)
         for path in file_names:
             os.remove(path)
         return
@@ -174,7 +192,6 @@ async def update_index(message: Message, album: List[Message] = None):
                                     )
     await message.answer("Начал обработку прелендинга, ожидайте")
     params = params[1].strip().split("=")
-    # conf = parse_conf(message.caption)
     try:
         file = await bot.get_file(message.document.file_id)
     except TelegramBadRequest:
@@ -185,6 +202,11 @@ async def update_index(message: Message, album: List[Message] = None):
     uniq_name = str(uuid.uuid4()) + '.zip'
     await bot.download_file(file.file_path, uniq_name)
     res = await update_zip(uniq_name, 'index.php', params)
-    new_file = FSInputFile(uniq_name, file_name)
-    await message.answer_document(new_file, caption='\n'.join(res))
+    with open(uniq_name, 'rb') as f:
+        data = f.read()
+    safe_name = unicodedata.normalize("NFC", file_name)
+    doc = BufferedInputFile(data, filename=safe_name)
+    await message.answer_document(doc, caption='\n'.join(res))
+    # new_file = FSInputFile(uniq_name, safe_name)
+    # await message.answer_document(new_file, caption='\n'.join(res))
     os.remove(uniq_name)

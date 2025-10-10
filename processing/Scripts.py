@@ -42,6 +42,8 @@ class Scripts:
         #     self.mask(self.conf.get('mask'))
         # Вставляем дефолтные скрипты якоря, антидубля, валидатора
         self.scroll()
+        new_tag = self.soup.new_tag('script', attrs={'src': '../jquery-migration-3.7.1.min.js'})
+        self.soup.html.head.append(new_tag)
         # self.anchor()
         # self.anti_double()
         # self.validator()
@@ -239,3 +241,4 @@ class Scripts:
             }});
             }});
         ''')
+    
