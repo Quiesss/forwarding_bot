@@ -29,10 +29,6 @@ def parse_conf(msg_capture) -> dict:
 
 class IndexParse:
 
-    PRICE_ENUM = 'USD|usd|\\$|EUR|eur|\\€|doll|DOLL|EURO|euro|pld|PLD|pln|PLN|zł|sol'
-    CROSS_EMOJI = '❌'
-    OK_EMOJI = '✅'
-
     def __init__(self, index_text, conf: dict, msg: list):
         self.msg = msg
         try:
@@ -59,24 +55,7 @@ class IndexParse:
         return self.get_php_code(self.conf[0], self.conf[1]) + self.text_tuning()
 
     def text_tuning(self):
-        # product = self.conf.get('product')
-        # price = self.conf.get('price')
         page = str(self.page.prettify())
-        # if product:
-        #     old_product = self.conf.get('old_p') or check_offer_name(self.page.text)
-        #     if old_product is not None:
-        #         page, count_offer_name = re.subn(old_product, product, page)
-        #         if count_offer_name > 0:
-        #             self.msg.append(self.OK_EMOJI + f'Поменял название оффера в {count_offer_name} местах')
-        #         else:
-        #             self.msg.append(self.CROSS_EMOJI + 'Не смог найти оффер в тексте')
-        # if price:
-        #     page, replace_count = re.subn(f'\\b\\d+(?:\\.\\d+)?\\s?({self.PRICE_ENUM})', price, page)
-        #     if replace_count > 0:
-        #         self.msg.append(self.OK_EMOJI + f'Поменял цену в {replace_count} местах')
-        #     else:
-        #         self.msg.append(self.CROSS_EMOJI + 'Не смог найти цены в тексте')
-
         return page
 
     def get_php_code(self, cobeklo: str, value: str):

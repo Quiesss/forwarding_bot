@@ -1,20 +1,17 @@
 import os
 import tempfile
-import traceback
 import uuid
 import zipfile
 import unicodedata
 from typing import List
 
 from aiogram import Router, F
-from aiogram.filters import Command, CommandObject
+from aiogram.filters import Command
 from aiogram.types import Message, FSInputFile
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import BufferedInputFile
 
 from conf import bot
-from processing.Partners import get_partner_params
-from processing.product.Product import product_img_names
 from treatment import parse_conf, IndexParse, make_order_file
 
 router = Router()
@@ -40,45 +37,6 @@ def _decode_zip_name(item: zipfile.ZipInfo) -> str:
             continue
     return item.filename
 
-@router.message(F.text.in_(get_partner_params()))
-async def get_partner_ta(message: Message):
-    params = ': \n'.join(get_partner_params(message.text))
-    await message.answer(
-        f'''
-<b>Шаблон тз для {message.text}</b> \n
-<code>partner: {message.text}
-cobeklo: 
-{params}: 
-sub2: 
-success: 
-product: 
-lang: 
-op/minfobiz: 
-</code>
-        ''')
-
-
-@router.message(F.text == 'ta')
-async def get_ta(message: Message):
-    return message.answer(
-        '''
-<b>Вот что можно указать в тз:</b> \n
-<code>cobeklo:</code> d3f3ed212 (without brackets)\n
-<code>mask:</code> +8 999 8934234 (маска номера телефона)\n
-<code>anchor:</code> #form (Селектор (#form, .toscroll и тд, к которому нужно проскролить)\n 
-<code>anti_d:</code> 1 (антидубль, по кукам)\n
-<code>country:</code> ES\n 
-<code>op:</code> 9M (домонетка OneProfit, писать цифру + первую букву)\n
-<code>minfobiz:</code> ES (писать гео, 2 буквы)\n 
-<code>a:</code> {offer} (на что поменять ссылки в тегах "a", можно не указывать, тогда просто очистит)\n
-<code>Шаблон:</code> 
-<code>
-cobeklo: 
-anti_d
-anchor: #form
-validator
-</code>
-        ''')
 
 
 async def update_zip(zip_name, filename, conf: dict):
@@ -153,7 +111,7 @@ async def update_zip(zip_name, filename, conf: dict):
 
 # @router.message(F.document | F.media_group_id, F.from_user.id.in_({460956316, 5215165553}))
 @router.message(Command(commands=["preland"]), F.document | F.media_group_id)
-async def update_index(message: Message, album: List[Message] = None):
+async def update_index(message: Message, album: List[Message]):
     if not message.caption and not album and not message.document.file_id:
         return await message.answer('Не понял что нужно сделать, пришлите ТЗ')
     if album is not None:

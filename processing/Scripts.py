@@ -9,8 +9,8 @@ class Scripts:
         'leadprofit2.js', 'jquery.min.js'
     ]
     BAD_INNER_SCRIPT_WORDS = [
-        'history.pushState', 'vitBack', 'minfobiz', 'domonet', 'domonetka', 'scrollTop', 'IMask',
-        'x_order_form', "on('submit', 'form'", 'order-in-progress__popup', 'leadprofit', 'initBacklink'
+        'history.pushState', 'vitBack', 'minfobiz', 'domonet', 'domonetka', 'IMask',
+        'x_order_form', "on('submit', 'form'", 'order-in-progress__popup', 'leadprofit', 'initBacklink', 'land-form'
     ]
 
     def __init__(self, soup: BeautifulSoup, scripts, conf: dict, msg: list):
@@ -32,23 +32,9 @@ class Scripts:
                     if bad_word in script.text:
                         script.decompose()
                         break
-
-        # Add jquery cdn
-        # tag = self.soup.new_tag('script', attrs={
-        #     'src': 'https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js'
-        # })
-        # self.soup.head.insert(0, tag)
-        # if self.conf.get('mask') is not None:
-        #     self.mask(self.conf.get('mask'))
-        # Вставляем дефолтные скрипты якоря, антидубля, валидатора
         self.scroll()
         new_tag = self.soup.new_tag('script', attrs={'src': '../jquery-migration-3.7.1.min.js'})
         self.soup.html.head.append(new_tag)
-        # self.anchor()
-        # self.anti_double()
-        # self.validator()
-        # self.add_domonet()
-        # self.msg.append('✅Якорь, антидубль, валидатор')
         self.msg.append('✅ Скролл')
 
     # Скрипт домонетизации
