@@ -111,7 +111,7 @@ async def update_zip(zip_name, filename, conf: dict):
 
 # @router.message(F.document | F.media_group_id, F.from_user.id.in_({460956316, 5215165553}))
 @router.message(Command(commands=["preland"]), F.document | F.media_group_id)
-async def update_index(message: Message, album: List[Message] = []):
+async def update_index(message: Message, album: List[Message] = None):
     if not message.caption and not album and not message.document.file_id:
         return await message.answer('Не понял что нужно сделать, пришлите ТЗ')
     if album is not None:
